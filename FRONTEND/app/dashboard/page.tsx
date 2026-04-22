@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { gsap } from 'gsap';
-import { getAllSessions, deleteSession } from '@/lib/supabase';
+import { getAllSessions, deleteSession, isSupabaseAvailable } from '@/lib/supabase';
 
 type Session = {
   id: string;
@@ -45,9 +45,15 @@ export default function DashboardPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dbAvailable, setDbAvailable] = useState(true);
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!isSupabaseAvailable()) {
+      setDbAvailable(false);
+      setLoading(false);
+      return;
+    }
     getAllSessions()
       .then(data => { setSessions(data as Session[]); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });
@@ -110,20 +116,44 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {loading && (
+        {/* No DB banner */}
+        {!dbAvailable && (
+          <div style={{
+            textAlign: 'center', padding: '60px 40px',
+            background: 'rgba(255,180,71,0.06)',
+            border: '1px solid rgba(255,180,71,0.25)',
+            borderRadius: 16, maxWidth: 520, margin: '0 auto 40px',
+          }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🗄️</div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#FFB547', marginBottom: 8 }}>Database not configured</h3>
+            <p style={{ color: '#5A5F75', fontSize: 13, lineHeight: 1.7, marginBottom: 20 }}>
+              Add <code style={{ color: '#FFB547' }}>NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
+              <code style={{ color: '#FFB547' }}>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>{' '}
+              to your Vercel environment variables to enable session history.
+            </p>
+            <button
+              onClick={() => router.push('/studio')}
+              style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0077b6, #00b4d8)', border: 'none', borderRadius: 10, color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Continue to Studio →
+            </button>
+          </div>
+        )}
+
+        {dbAvailable && loading && (
           <div style={{ textAlign: 'center', padding: '80px 0', color: '#5A5F75' }}>
             <div style={{ width: 32, height: 32, border: '2px solid #00b4d8', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
             Loading sessions...
           </div>
         )}
 
-        {error && (
+        {dbAvailable && error && (
           <div style={{ textAlign: 'center', padding: '80px 0', color: '#FF6B4A' }}>
             Error loading sessions: {error}
           </div>
         )}
 
-        {!loading && !error && sessions.length === 0 && (
+        {dbAvailable && !loading && !error && sessions.length === 0 && (
           <div style={{
             textAlign: 'center', padding: '80px 40px',
             background: 'rgba(255,255,255,0.02)',
@@ -149,7 +179,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {!loading && sessions.length > 0 && (
+        {dbAvailable && !loading && sessions.length > 0 && (
           <div
             ref={gridRef}
             style={{

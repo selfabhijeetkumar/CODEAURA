@@ -56,16 +56,19 @@ export function SaveSessionModal({
         bug_count: bugCount,
       });
 
-      // Upsert leaderboard with a guest user
-      const userId = localStorage.getItem('ca_user_id') ?? (() => {
-        const id = `guest_${Math.random().toString(36).slice(2, 9)}`;
-        localStorage.setItem('ca_user_id', id);
-        return id;
-      })();
-      const username = localStorage.getItem('ca_username') ?? 'Anonymous Coder';
-      await upsertLeaderboard({ user_id: userId, username, quality_score: qualityScore, bug_count: bugCount });
+      if (row) {
+        // Upsert leaderboard with a guest user
+        const userId = localStorage.getItem('ca_user_id') ?? (() => {
+          const id = `guest_${Math.random().toString(36).slice(2, 9)}`;
+          localStorage.setItem('ca_user_id', id);
+          return id;
+        })();
+        const username = localStorage.getItem('ca_username') ?? 'Anonymous Coder';
+        await upsertLeaderboard({ user_id: userId, username, quality_score: qualityScore, bug_count: bugCount });
+        onSaved?.(row.id, name.trim());
+      }
 
-      // Toast
+      // Show toast regardless — if no DB, session is saved locally in memory
       setToast(true);
       if (toastRef.current) {
         gsap.fromTo(toastRef.current,
@@ -76,10 +79,10 @@ export function SaveSessionModal({
           if (toastRef.current) gsap.to(toastRef.current, { x: 100, opacity: 0, duration: 0.3, onComplete: () => setToast(false) });
         }, 3000);
       }
-      onSaved?.(row.id, name.trim());
       setTimeout(close, 3500);
     } catch (err: any) {
       console.error('Save session error:', err.message);
+      close();
     } finally {
       setSaving(false);
     }

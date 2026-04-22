@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { gsap } from 'gsap';
-import { getLeaderboard } from '@/lib/supabase';
+import { getLeaderboard, isSupabaseAvailable } from '@/lib/supabase';
 
 type LeaderboardEntry = {
   id: string;
@@ -48,11 +48,17 @@ export default function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [filter, setFilter] = useState<Filter>('all');
   const [loading, setLoading] = useState(true);
+  const [dbAvailable, setDbAvailable] = useState(true);
   const tableRef = useRef<HTMLDivElement>(null);
 
   const myUserId = typeof window !== 'undefined' ? localStorage.getItem('ca_user_id') : null;
 
   useEffect(() => {
+    if (!isSupabaseAvailable()) {
+      setDbAvailable(false);
+      setLoading(false);
+      return;
+    }
     getLeaderboard()
       .then(data => {
         // Update rank badges based on position
@@ -112,8 +118,32 @@ export default function LeaderboardPage() {
       </div>
 
       <div style={{ padding: '40px', maxWidth: 1000, margin: '0 auto' }}>
+        {/* No DB banner */}
+        {!dbAvailable && (
+          <div style={{
+            textAlign: 'center', padding: '60px 40px',
+            background: 'rgba(255,180,71,0.06)',
+            border: '1px solid rgba(255,180,71,0.25)',
+            borderRadius: 16, maxWidth: 520, margin: '0 auto 40px',
+          }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🗄️</div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#FFB547', marginBottom: 8 }}>Database not configured</h3>
+            <p style={{ color: '#5A5F75', fontSize: 13, lineHeight: 1.7, marginBottom: 20 }}>
+              Add <code style={{ color: '#FFB547' }}>NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
+              <code style={{ color: '#FFB547' }}>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>{' '}
+              to your Vercel environment variables to enable the global leaderboard.
+            </p>
+            <button
+              onClick={() => router.push('/studio')}
+              style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #0077b6, #00b4d8)', border: 'none', borderRadius: 10, color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Continue to Studio →
+            </button>
+          </div>
+        )}
+
         {/* My Rank Card */}
-        {myEntry && (
+        {dbAvailable && myEntry && (
           <div style={{
             background: 'rgba(0,180,216,0.06)',
             border: '1px solid rgba(0,180,216,0.3)',
@@ -159,7 +189,8 @@ export default function LeaderboardPage() {
         )}
 
         {/* Filters */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        {dbAvailable && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
           {(['all', 'week', 'today'] as Filter[]).map(f => (
             <button
               key={f}
@@ -179,11 +210,12 @@ export default function LeaderboardPage() {
             {filtered.length} coder{filtered.length !== 1 ? 's' : ''}
           </span>
         </div>
+        )}
 
         {/* Table */}
-        {loading ? (
+        {dbAvailable && loading ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: '#5A5F75' }}>Loading rankings...</div>
-        ) : filtered.length === 0 ? (
+        ) : dbAvailable && filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🏆</div>
             <h3 style={{ color: '#EAEAF0', marginBottom: 8 }}>No coders ranked yet</h3>
