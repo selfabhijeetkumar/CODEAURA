@@ -6,10 +6,22 @@ let _supabase: ReturnType<typeof import('@supabase/supabase-js').createClient> |
 
 async function getSupabase() {
   if (_supabase) return _supabase;
-  const { createClient } = await import('@supabase/supabase-js');
+  const url = process.env.SUPABASE_URL || '';
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
-  _supabase = createClient(process.env.SUPABASE_URL!, key);
-  return _supabase;
+  
+  if (!url || !key) {
+    logger.warn('Supabase not configured in backend');
+    return null;
+  }
+  
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    _supabase = createClient(url, key);
+    return _supabase;
+  } catch (err) {
+    logger.warn({ err }, 'Supabase init failed in backend');
+    return null;
+  }
 }
 
 const CACHE_TTL_DAYS = 7;
@@ -20,6 +32,7 @@ export function hashCode(code: string): string {
 
 export async function getCachedSession(codeHash: string) {
   const sb = await getSupabase();
+  if (!sb) return null;
   const { data, error } = await sb
     .from('sessions')
     .select('*')
@@ -47,6 +60,7 @@ export async function saveSession(params: {
   anonToken?: string;
 }) {
   const sb = await getSupabase();
+  if (!sb) return null;
   const { data, error } = await sb
     .from('sessions')
     .insert({
@@ -71,6 +85,7 @@ export async function saveSession(params: {
 
 export async function getSessionById(id: string) {
   const sb = await getSupabase();
+  if (!sb) return null;
   const { data, error } = await sb
     .from('sessions')
     .select('*')

@@ -4,8 +4,15 @@ import { z } from 'zod';
 const router = Router();
 
 async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js');
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+  const url = process.env.SUPABASE_URL || '';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
+  if (!url || !key) return null;
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    return createClient(url, key);
+  } catch (err) {
+    return null;
+  }
 }
 
 const DiffBody = z.object({
@@ -27,7 +34,9 @@ router.post('/diff', async (req: Request, res: Response, next: NextFunction) => 
     }
     const report = await diffSessions(sessionA.script, sessionB.script);
     const sb = await getSupabase();
-    await sb.from('diffs').insert({ session_a: sessionIdA, session_b: sessionIdB, report });
+    if (sb) {
+      await sb.from('diffs').insert({ session_a: sessionIdA, session_b: sessionIdB, report });
+    }
     return res.json({ report });
   } catch (err) {
     next(err);
