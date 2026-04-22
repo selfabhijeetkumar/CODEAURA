@@ -21,10 +21,23 @@ const result = config({ path: envPath });
 if (result.error) {
   console.error(`[env] ⚠️  dotenv failed to load: ${result.error.message}`);
 } else {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) {
-    console.error('[env] ❌ GEMINI_API_KEY missing in BACKEND/.env');
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  const deepseekKey = process.env.DEEPSEEK_API_KEY;
+
+  if (geminiKey) {
+    console.log(`[env] ✅ GEMINI_API_KEY loaded (${geminiKey.slice(0, 8)}...)`);
   } else {
-    console.log(`[env] ✅ GEMINI_API_KEY loaded (${key.slice(0, 8)}...)`);
+    console.warn('[env] ⚠️  GEMINI_API_KEY not set — will try OpenAI/DeepSeek fallback');
+  }
+  if (openaiKey) {
+    console.log(`[env] ✅ OPENAI_API_KEY loaded (${openaiKey.slice(0, 8)}...)`);
+  } else {
+    console.warn('[env] ⚠️  OPENAI_API_KEY not set — OpenAI fallback disabled');
+  }
+  if (deepseekKey && deepseekKey !== 'none' && deepseekKey !== 'skip') {
+    console.log(`[env] ✅ DEEPSEEK_API_KEY loaded (${deepseekKey.slice(0, 8)}...)`);
+  } else {
+    console.warn('[env] ⚠️  DEEPSEEK_API_KEY not set — DeepSeek fallback disabled');
   }
 }

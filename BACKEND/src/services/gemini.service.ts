@@ -3,9 +3,10 @@ import { ANALYZE_SYSTEM, buildAnalyzeUser, ASK_SYSTEM, DIFF_SYSTEM } from '../pr
 import { ExecutionScriptSchema, DiffReportSchema } from '../schemas/execution-step.js';
 import { logger } from '../middleware/logger.js';
 import * as deepseekService from './deepseek.service.js';
+import * as openaiService from './openai.service.js';
 
 // ── Stable model name ─────────────────────────────────────────────────────────
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = 'gemini-1.5-flash';
 
 // ── API Key Selection & Failover ─────────────────────────────────────────────
 const keys = [
@@ -31,13 +32,64 @@ function getKeySnippet(index?: number): string {
 function rotateKey() {
   if (keys.length > 1) {
     currentKeyIndex = (currentKeyIndex + 1) % keys.length;
-    console.log(`[Failover] Switched to key index=${currentKeyIndex} (${getKeySnippet()})`);
+    console.log(`[Failover] Switched to Gemini key index=${currentKeyIndex} (${getKeySnippet()})`);
   }
+}
+
+// ── AI Fallback Chain: Gemini → OpenAI → DeepSeek → Mock ─────────────────────
+async function runAnalysisFallbackChain(code: string, filename?: string) {
+  // 1. Try OpenAI
+  try {
+    console.log('[Fallback] Trying OpenAI gpt-3.5-turbo...');
+    return await openaiService.analyzeWithOpenAI(code, filename);
+  } catch (openaiErr: any) {
+    console.error(`[Fallback] OpenAI failed: ${openaiErr.message}`);
+  }
+
+  // 2. Try DeepSeek
+  try {
+    console.log('[Fallback] Trying DeepSeek...');
+    return await deepseekService.analyzeCode(code, filename);
+  } catch (dsErr: any) {
+    console.error(`[Fallback] DeepSeek failed: ${dsErr.message}`);
+  }
+
+  // 3. Return mock steps — NEVER throw to frontend
+  console.warn('[Fallback] All AI providers failed. Returning mock steps.');
+  return deepseekService.generateMockSteps(code);
+}
+
+async function runAskFallbackChain(question: string, stepContext: string): Promise<string> {
+  // 1. Try OpenAI
+  try {
+    console.log('[Fallback] Ask — Trying OpenAI gpt-3.5-turbo...');
+    return await openaiService.askWithOpenAI(question, stepContext);
+  } catch (openaiErr: any) {
+    console.error(`[Fallback] Ask — OpenAI failed: ${openaiErr.message}`);
+  }
+
+  // 2. Try DeepSeek
+  try {
+    console.log('[Fallback] Ask — Trying DeepSeek...');
+    return await deepseekService.askQuestion(question, stepContext);
+  } catch (dsErr: any) {
+    console.error(`[Fallback] Ask — DeepSeek failed: ${dsErr.message}`);
+  }
+
+  // 3. Mock answer
+  console.warn('[Fallback] Ask — All AI providers failed. Returning mock answer.');
+  return 'AI providers are currently offline. This is a mock response.';
 }
 
 // ── Analyze ──────────────────────────────────────────────────────────────────
 export async function analyzeCode(code: string, filename?: string) {
   console.log(`[Analyze] Starting — model=${GEMINI_MODEL}  key index=${currentKeyIndex} (${getKeySnippet()})`);
+
+  // If no Gemini keys at all, skip straight to fallback chain
+  if (keys.length === 0) {
+    console.warn('[Analyze] No Gemini keys configured. Jumping to fallback chain...');
+    return await runAnalysisFallbackChain(code, filename);
+  }
 
   let attempts = 0;
   const maxAttempts = keys.length;
@@ -59,7 +111,7 @@ export async function analyzeCode(code: string, filename?: string) {
       const result = await model.generateContent(buildAnalyzeUser(code, filename));
       const text = result.response.text();
       logger.info({ text_length: text.length }, 'Gemini /analyze response received');
-      console.log(`[Analyze] Response OK — ${text.length} chars`);
+      console.log(`[Analyze] Gemini OK — ${text.length} chars`);
 
       let parsed: unknown;
       try {
@@ -71,47 +123,23 @@ export async function analyzeCode(code: string, filename?: string) {
       return ExecutionScriptSchema.parse(parsed);
 
     } catch (err: any) {
-      console.error(`[Analyze] Attempt ${attempts + 1} FAILED (key index=${currentKeyIndex}): ${err.message}`);
+      console.error(`[Analyze] Gemini attempt ${attempts + 1} FAILED (key index=${currentKeyIndex}): ${err.message}`);
       rotateKey();
       attempts++;
-      
-      const isRateLimit = err.status === 429 || err?.response?.status === 429 || err.message?.includes('429') || err.message?.toLowerCase().includes('quota');
-      const isNotFound = err.status === 404 || err?.response?.status === 404 || err.message?.includes('404');
-      
-      if (isRateLimit || isNotFound) {
-        console.log(`[Analyze] Triggering DeepSeek fallback automatically...`);
-        try {
-          return await deepseekService.analyzeCode(code, filename);
-        } catch (dsErr: any) {
-          console.error(`[Analyze] DeepSeek fallback FAILED: ${dsErr.message}`);
-          if (attempts === maxAttempts) {
-            console.warn('[Analyze] All AI providers failed. Returning mock steps.');
-            return deepseekService.generateMockSteps(code);
-          }
-        }
-      } else if (attempts === maxAttempts) {
-        console.warn('[Analyze] Gemini API failed after all available keys were exhausted. Returning mock steps.');
-        return deepseekService.generateMockSteps(code);
+
+      if (attempts === maxAttempts) {
+        console.warn('[Analyze] Gemini exhausted all keys. Running fallback chain...');
+        return await runAnalysisFallbackChain(code, filename);
       }
     }
   }
 
-  // If no Gemini keys are configured at all, fallback to DeepSeek immediately
-  if (maxAttempts === 0) {
-    console.log(`[Analyze] No Gemini keys configured. Triggering DeepSeek fallback automatically...`);
-    try {
-      return await deepseekService.analyzeCode(code, filename);
-    } catch (dsErr: any) {
-      console.error(`[Analyze] DeepSeek fallback FAILED: ${dsErr.message}`);
-      console.warn('[Analyze] All AI providers failed. Returning mock steps.');
-      return deepseekService.generateMockSteps(code);
-    }
-  }
+  // Safety net
+  return await runAnalysisFallbackChain(code, filename);
 }
 
 // ── Ask ───────────────────────────────────────────────────────────────────────
 export async function askQuestion(question: string, stepContext: string): Promise<string> {
-  // Log WHICH key is being used BEFORE the call
   console.log(`[Ask] ── REQUEST ──────────────────────────────────────────`);
   console.log(`[Ask]  model      : ${GEMINI_MODEL}`);
   console.log(`[Ask]  key index  : ${currentKeyIndex}`);
@@ -119,6 +147,11 @@ export async function askQuestion(question: string, stepContext: string): Promis
   console.log(`[Ask]  question   : "${question.slice(0, 100)}"`);
   console.log(`[Ask]  ctx length : ${stepContext.length} chars`);
   console.log(`[Ask] ───────────────────────────────────────────────────────`);
+
+  if (keys.length === 0) {
+    console.warn('[Ask] No Gemini keys configured. Running fallback chain...');
+    return await runAskFallbackChain(question, stepContext);
+  }
 
   try {
     const model = getGenAI().getGenerativeModel({
@@ -134,35 +167,17 @@ export async function askQuestion(question: string, stepContext: string): Promis
     const result = await model.generateContent(prompt);
     const answer = result.response.text();
 
-    console.log(`[Ask] ✅ SUCCESS — response ${answer.length} chars`);
+    console.log(`[Ask] ✅ Gemini SUCCESS — ${answer.length} chars`);
     return answer;
 
   } catch (error: any) {
-    // Surface the full error so it's visible in terminal — NOT silently swallowed
-    console.error(`[Ask] ❌ FAILED ─────────────────────────────────────────`);
-    console.error(`[Ask]  key index  : ${currentKeyIndex}`);
-    console.error(`[Ask]  key snippet: ${getKeySnippet()}`);
+    console.error(`[Ask] ❌ Gemini FAILED ─────────────────────────────────────────`);
     console.error(`[Ask]  error msg  : ${error.message}`);
-    console.error(`[Ask]  http status: ${error.status ?? error.statusCode ?? 'unknown'}`);
-    console.error(`[Ask]  error code : ${error.errorDetails?.[0]?.reason ?? 'unknown'}`);
+    console.error(`[Ask]  http status: ${error.status ?? 'unknown'}`);
     console.error(`[Ask] ────────────────────────────────────────────────────`);
-    logger.warn({ err: error }, 'Gemini /ask failed');
+    logger.warn({ err: error }, 'Gemini /ask failed — running fallback chain');
 
-    const isRateLimit = error.status === 429 || error?.response?.status === 429 || error.message?.includes('429') || error.message?.toLowerCase().includes('quota');
-    const isNotFound = error.status === 404 || error?.response?.status === 404 || error.message?.includes('404');
-    
-    if (isRateLimit || isNotFound) {
-      console.log(`[Ask] Triggering DeepSeek fallback automatically...`);
-      try {
-        return await deepseekService.askQuestion(question, stepContext);
-      } catch (dsErr: any) {
-        console.warn('[Ask] All AI providers failed. Returning mock answer.');
-        return "AI providers are currently offline. This is a mock response.";
-      }
-    }
-
-    console.warn('[Ask] Gemini API failed. Returning mock answer.');
-    return "AI providers are currently offline. This is a mock response.";
+    return await runAskFallbackChain(question, stepContext);
   }
 }
 
@@ -170,18 +185,35 @@ export async function askQuestion(question: string, stepContext: string): Promis
 export async function diffSessions(scriptA: unknown, scriptB: unknown) {
   console.log(`[Diff] Starting — model=${GEMINI_MODEL}  key index=${currentKeyIndex} (${getKeySnippet()})`);
 
-  const model = getGenAI().getGenerativeModel({
-    model: GEMINI_MODEL,
-    systemInstruction: DIFF_SYSTEM,
-    generationConfig: {
-      temperature: 0.3,
-      maxOutputTokens: 2048,
-      responseMimeType: 'application/json',
-    },
-  });
+  if (keys.length === 0) {
+    return DiffReportSchema.parse({
+      added: [], removed: [], changed: [],
+      verdict: 'Diff unavailable — AI not configured.',
+      performanceDelta: 'N/A', readabilityDelta: 'N/A',
+    });
+  }
 
-  const prompt = `Version A:\n${JSON.stringify(scriptA)}\n\nVersion B:\n${JSON.stringify(scriptB)}\n\nProduce the diff report.`;
-  const result = await model.generateContent(prompt);
-  const parsed = JSON.parse(result.response.text());
-  return DiffReportSchema.parse(parsed);
+  try {
+    const model = getGenAI().getGenerativeModel({
+      model: GEMINI_MODEL,
+      systemInstruction: DIFF_SYSTEM,
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 2048,
+        responseMimeType: 'application/json',
+      },
+    });
+
+    const prompt = `Version A:\n${JSON.stringify(scriptA)}\n\nVersion B:\n${JSON.stringify(scriptB)}\n\nProduce the diff report.`;
+    const result = await model.generateContent(prompt);
+    const parsed = JSON.parse(result.response.text());
+    return DiffReportSchema.parse(parsed);
+  } catch (err: any) {
+    console.error(`[Diff] Gemini failed: ${err.message}. Returning empty diff.`);
+    return DiffReportSchema.parse({
+      added: [], removed: [], changed: [],
+      verdict: 'Diff unavailable — AI temporarily offline.',
+      performanceDelta: 'N/A', readabilityDelta: 'N/A',
+    });
+  }
 }
