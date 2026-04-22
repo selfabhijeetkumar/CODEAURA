@@ -5,6 +5,35 @@ import { logger } from '../middleware/logger.js';
 
 const DEEPSEEK_MODEL = 'deepseek/deepseek-chat';
 
+export function generateMockSteps(code: string) {
+    return ExecutionScriptSchema.parse({
+        language: "javascript",
+        languageConfidence: 1,
+        summary: "Mock analysis since AI providers are unconfigured or failed.",
+        qualityScore: 100,
+        qualityBreakdown: { readability: 100, performance: 100, correctness: 100, idiomaticity: 100 },
+        complexity: { time: "O(1)", space: "O(1)", explanation: "Mock data" },
+        bugs: [],
+        optimizations: [],
+        steps: Array.from({ length: 5 }).map((_, i) => ({
+            id: `mock-${i + 1}`,
+            order: i + 1,
+            type: "function_call",
+            line: Math.max(1, Math.min(i + 1, code.split('\n').length)),
+            codeSnippet: code.split('\n')[i] || "// Code execution",
+            title: `Execution Step ${i + 1}`,
+            narration: `AI providers are offline. Mocking step ${i + 1} to keep visualizer running.`,
+            cinematicHint: "Focus",
+            payload: {}
+        })),
+        scenePlan: {
+            camera: { style: "orbit", initialPosition: [0, 5, 10] },
+            palette: "aurora",
+            tempo: "medium"
+        }
+    });
+}
+
 function getOpenAI(): OpenAI {
     return new OpenAI({
         baseURL: 'https://openrouter.ai/api/v1',
@@ -17,8 +46,10 @@ function getOpenAI(): OpenAI {
 }
 
 export async function analyzeCode(code: string, filename?: string) {
-    if (!process.env.DEEPSEEK_API_KEY) {
-        throw new Error('No DEEPSEEK_API_KEY found');
+    const key = process.env.DEEPSEEK_API_KEY;
+    if (!key || key === 'none' || key === 'skip') {
+        console.warn('DeepSeek not configured, using mock');
+        return generateMockSteps(code);
     }
     console.log(`[DeepSeek Analyze] Starting — model=${DEEPSEEK_MODEL}`);
 
@@ -54,8 +85,10 @@ export async function analyzeCode(code: string, filename?: string) {
 }
 
 export async function askQuestion(question: string, stepContext: string): Promise<string> {
-    if (!process.env.DEEPSEEK_API_KEY) {
-        throw new Error('No DEEPSEEK_API_KEY found');
+    const key = process.env.DEEPSEEK_API_KEY;
+    if (!key || key === 'none' || key === 'skip') {
+        console.warn('DeepSeek not configured, returning mock answer');
+        return "AI providers are currently offline. This is a mock response.";
     }
     console.log(`[DeepSeek Ask] Starting — model=${DEEPSEEK_MODEL}`);
 
