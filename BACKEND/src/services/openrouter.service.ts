@@ -14,7 +14,7 @@
 
 import OpenAI from 'openai';
 import { ANALYZE_SYSTEM, buildAnalyzeUser, ASK_SYSTEM } from '../prompts/analyze.prompt.js';
-import { ExecutionScriptSchema } from '../schemas/execution-step.js';
+import { ExecutionScriptSchema, type ExecutionScript } from '../schemas/execution-step.js';
 import { logger } from '../middleware/logger.js';
 import { withKeyRotation, getLiveKeys, type ApiKeyEntry } from './api-key-manager.js';
 
@@ -65,7 +65,7 @@ function cleanJson(raw: string): string {
 }
 
 // ── Analyze ──────────────────────────────────────────────────────────────────
-export async function analyzeWithOpenRouter(code: string, filename?: string): Promise<unknown> {
+export async function analyzeWithOpenRouter(code: string, filename?: string): Promise<ExecutionScript> {
   const liveKeys = getLiveKeys('openrouter');
   if (liveKeys.length === 0) {
     throw new Error('OpenRouter: no live keys available');
