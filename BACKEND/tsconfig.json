@@ -14,7 +14,7 @@
     "declarationMap": false,
     "sourceMap": true,
     "paths": {
-      "shared/*": ["../../packages/shared/*"]
+      "shared/*": ["../packages/shared/*"]
     }
   },
   "include": ["src/**/*"],

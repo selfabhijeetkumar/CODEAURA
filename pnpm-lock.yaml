@@ -15,7 +15,7 @@ importers:
         specifier: ^5.5.4
         version: 5.9.3
 
-  apps/api:
+  BACKEND:
     dependencies:
       '@google/generative-ai':
         specifier: 0.21.0
@@ -55,7 +55,7 @@ importers:
         version: 11.3.0
       shared:
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: link:../packages/shared
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -79,7 +79,7 @@ importers:
         specifier: ^5.5.4
         version: 5.9.3
 
-  apps/web:
+  FRONTEND:
     dependencies:
       '@gsap/react':
         specifier: 2.1.1
@@ -131,7 +131,7 @@ importers:
         version: 18.3.1(react@18.3.1)
       shared:
         specifier: workspace:*
-        version: link:../../packages/shared
+        version: link:../packages/shared
       sonner:
         specifier: 1.5.0
         version: 1.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
