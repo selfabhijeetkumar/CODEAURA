@@ -1,0 +1,258 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CODEAURA — Design System CSS Variables
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+:root {
+  /* Core Void — 90% of every viewport */
+  --aura-void:         #000000;
+  --aura-obsidian:     #05060A;
+  --aura-carbon:       #0B0D13;
+  --aura-graphite:     #12151F;
+  --aura-smoke:        #1C2030;
+
+  /* Ink — text hierarchy */
+  --aura-ink-pure:     #FFFFFF;
+  --aura-ink-primary:  #EAEAF0;
+  --aura-ink-secondary:#9BA0B3;
+  --aura-ink-tertiary: #5A5F75;
+  --aura-ink-ghost:    #2E3244;
+
+  /* Signal Accents — touch <5% of any viewport */
+  --aura-plasma:       #7C5CFF;
+  --aura-plasma-glow:  #A88BFF;
+  --aura-aurora:       #4FE3C1;
+  --aura-ember:        #FF6B4A;
+  --aura-solar:        #FFB547;
+  --aura-nebula:       #FF3DCB;
+
+  /* Glass */
+  --aura-glass-bg:     rgba(18, 21, 31, 0.55);
+  --aura-glass-border: rgba(255, 255, 255, 0.06);
+  --aura-glass-blur:   blur(24px) saturate(140%);
+
+  /* Gradients */
+  --aura-grad-plasma:  linear-gradient(135deg, #7C5CFF 0%, #FF3DCB 100%);
+  --aura-grad-aurora:  linear-gradient(135deg, #4FE3C1 0%, #7C5CFF 100%);
+  --aura-grad-void:    radial-gradient(ellipse at top, #12151F 0%, #000000 70%);
+
+  /* Execution Step Colors */
+  --exec-variable:     #60A5FA;  --exec-variable-glow:  rgba(96,165,250,0.4);
+  --exec-function:     #A78BFA;  --exec-function-glow:  rgba(167,139,250,0.4);
+  --exec-loop:         #34D399;  --exec-loop-glow:      rgba(52,211,153,0.4);
+  --exec-condition:    #FBBF24;  --exec-condition-glow: rgba(251,191,36,0.4);
+  --exec-return:       #F472B6;  --exec-return-glow:    rgba(244,114,182,0.4);
+  --exec-error:        #FF2D55;  --exec-error-glow:     rgba(255,45,85,0.5);
+  --exec-io:           #38BDF8;  --exec-io-glow:        rgba(56,189,248,0.4);
+  --exec-class:        #C084FC;  --exec-class-glow:     rgba(192,132,252,0.4);
+  --exec-async:        #2DD4BF;  --exec-async-glow:     rgba(45,212,191,0.4);
+  --exec-array:        #FB923C;  --exec-array-glow:     rgba(251,146,60,0.4);
+  --exec-object:       #E879F9;  --exec-object-glow:    rgba(232,121,249,0.4);
+  --exec-recursion:    #F43F5E;  --exec-recursion-glow: rgba(244,63,94,0.4);
+  --exec-memory:       #818CF8;  --exec-memory-glow:    rgba(129,140,248,0.4);
+
+  /* Motion */
+  --ease-aura: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Font variables */
+  --font-serif: 'Instrument_Serif', Georgia, serif;
+  --font-sans:  'Geist', system-ui, sans-serif;
+  --font-mono:  'Geist_Mono', Menlo, monospace;
+}
+
+/* ━━━━━ BASE RESET ━━━━━ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--aura-void);
+  color: var(--aura-ink-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.65;
+  overflow-x: hidden;
+  cursor: none; /* Custom cursor */
+}
+
+/* ━━━━━ GLASSMORPHISM LAW ━━━━━ */
+.glass-panel {
+  background: var(--aura-glass-bg);
+  backdrop-filter: var(--aura-glass-blur);
+  -webkit-backdrop-filter: var(--aura-glass-blur);
+  border: 1px solid var(--aura-glass-border);
+  box-shadow:
+    0 25px 50px -12px rgba(0,0,0,0.5),
+    inset 0 1px 1px rgba(255,255,255,0.04);
+  border-radius: 20px;
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.glass-panel:hover {
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(18, 21, 31, 0.7);
+}
+
+/* ━━━━━ GRADIENT TEXT ━━━━━ */
+.text-plasma {
+  background: var(--aura-grad-plasma);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-aurora {
+  background: var(--aura-grad-aurora);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ━━━━━ PLASMA GLOW TEXT ━━━━━ */
+.text-glow-plasma {
+  text-shadow: 0 0 40px rgba(124, 92, 255, 0.6), 0 0 80px rgba(124, 92, 255, 0.3);
+}
+.text-glow-aurora {
+  text-shadow: 0 0 40px rgba(79, 227, 193, 0.6);
+}
+
+/* ━━━━━ SELECTION ━━━━━ */
+::selection {
+  background: rgba(124, 92, 255, 0.35);
+  color: #EAEAF0;
+}
+
+/* ━━━━━ SCROLLBAR ━━━━━ */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--aura-void); }
+::-webkit-scrollbar-thumb { background: var(--aura-smoke); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--aura-plasma); }
+
+/* ━━━━━ CRT SCANLINE OVERLAY ━━━━━ */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    transparent 0px,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  opacity: 0.4;
+}
+
+/* ━━━━━ TYPOGRAPHY UTILITIES ━━━━━ */
+.font-serif { font-family: var(--font-serif); }
+.font-serif-italic { font-family: var(--font-serif); font-style: italic; }
+.font-mono { font-family: var(--font-mono); }
+
+.label-caps {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--aura-ink-tertiary);
+}
+
+/* ━━━━━ PLASMA BUTTON SHIMMER ━━━━━ */
+.btn-plasma {
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  border: 1px solid var(--aura-plasma);
+  color: var(--aura-ink-primary);
+  border-radius: 12px;
+  padding: 12px 28px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: none;
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.btn-plasma::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(124,92,255,0.15) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.btn-plasma:hover::before { transform: translateX(100%); }
+.btn-plasma:hover {
+  background: rgba(124, 92, 255, 0.08);
+  box-shadow: 0 0 30px rgba(124,92,255,0.25), inset 0 0 20px rgba(124,92,255,0.05);
+  transform: translateY(-2px);
+}
+.btn-plasma:active { transform: scale(0.97); }
+
+/* ━━━━━ FOCUS STYLES ━━━━━ */
+*:focus-visible {
+  outline: 2px solid var(--aura-plasma);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ━━━━━ REDUCED MOTION ━━━━━ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ━━━━━ MONACO EDITOR OVERRIDES ━━━━━ */
+.monaco-editor {
+  background: transparent !important;
+}
+.monaco-editor .margin {
+  background: transparent !important;
+}
+
+/* ━━━━━ TIMELINE DOT ANIMATIONS ━━━━━ */
+.timeline-dot-error {
+  background: var(--aura-ember) !important;
+  box-shadow: 0 0 8px var(--aura-ember);
+  animation: ember-pulse 1.5s ease-in-out infinite;
+}
+@keyframes ember-pulse {
+  0%, 100% { box-shadow: 0 0 8px var(--aura-ember); }
+  50% { box-shadow: 0 0 20px var(--aura-ember), 0 0 40px rgba(255,107,74,0.3); }
+}
+
+/* ━━━━━ GRID FLOOR ━━━━━ */
+.scene-container {
+  background: radial-gradient(ellipse at center bottom, #0B0D13 0%, #000000 70%);
+}
+
+/* ━━━━━ FADE-IN-UP (floating NEXT button) ━━━━━ */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ━━━━━ PANEL FADE-IN (step transition) ━━━━━ */
+@keyframes panelFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ━━━━━ TEXT SIZE UTILITIES ━━━━━ */
+.text-heading   { font-size: 1.1rem; font-weight: 600; }
+.text-body-lg   { font-size: 0.925rem; }
+.text-body      { font-size: 0.875rem; }
+.text-code      { font-size: 0.8rem; }
+.text-caption   { font-size: 0.75rem; }
