@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ANALYZE_SYSTEM, buildAnalyzeUser, ASK_SYSTEM, DIFF_SYSTEM } from '../prompts/analyze.prompt.js';
-import { ExecutionScriptSchema, DiffReportSchema } from '../schemas/execution-step.js';
+import { ExecutionScriptSchema, DiffReportSchema, type ExecutionScript } from '../schemas/execution-step.js';
 import { logger } from '../middleware/logger.js';
 import { withKeyRotation, getLiveKeys, getAnyLiveKey } from './api-key-manager.js';
 
@@ -12,7 +12,7 @@ import * as deepseekService from './deepseek.service.js';
 const GEMINI_MODEL = 'gemini-1.5-flash';
 
 // ── AI Fallback Chain ─────────────────────────────────────────────────────────
-async function runAnalysisFallbackChain(code: string, filename?: string) {
+async function runAnalysisFallbackChain(code: string, filename?: string): Promise<ExecutionScript> {
   // 1. Try Groq
   try {
     if (getLiveKeys('groq').length > 0) {
@@ -81,7 +81,7 @@ async function runAskFallbackChain(question: string, stepContext: string): Promi
 }
 
 // ── Analyze ──────────────────────────────────────────────────────────────────
-export async function analyzeCode(code: string, filename?: string) {
+export async function analyzeCode(code: string, filename?: string): Promise<ExecutionScript> {
   const liveKeys = getLiveKeys('gemini');
 
   if (liveKeys.length === 0) {
