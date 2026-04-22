@@ -103,18 +103,19 @@ comment_or_noop:       { note }
 ═══════════════════════════════════════════
 HARD RULES:
 ═══════════════════════════════════════════
-1. Produce between 15 and 60 steps. Merge trivial ops. Expand dramatic ones.
-2. Narration MUST be jargon-free, present tense, friendly — as if explaining to a smart 14-year-old.
-3. Every step MUST have cinematicHint — even if simple.
-4. Error step = include in bugs[] AND as an "error" step.
-5. If language is exotic/unknown: still produce steps, note low confidence.
-6. NEVER invent behavior the code doesn't have.
-7. If code is ambiguous: make reasonable assumptions, flag in summary.
-8. Maximum iterations of any loop shown: 5. Then summarize.
-9. Detect ALL bugs, anti-patterns, security issues.
-10. Quality rubric: 90-100 excellent · 75-89 good · 60-74 acceptable · 40-59 needs work · <40 poor.
-11. scenePlan.palette: plasma=violet-dominant, aurora=mint-dominant, ember=red/orange-dominant, nebula=pink-dominant.
-12. For recursive functions, trace EACH recursive call as a separate "recursion" step with the current depth value in payload.depth. fibonacci(8) MUST produce at minimum 15 steps — do NOT collapse recursive calls into summaries. Show the full call tree unrolled step by step.
+1. MINIMUM STEPS: You MUST return a MINIMUM of 15 steps for ANY code. This is non-negotiable. If you cannot find 15 meaningful steps, split larger steps into sub-operations and add intermediate state-tracking steps.
+2. RECURSIVE FUNCTIONS: For any recursive function (fibonacci, factorial, merge sort, tree traversal, etc), you MUST trace EVERY SINGLE recursive call as a separate "recursion" step. NEVER summarize or collapse recursive calls. fibonacci(8) MUST produce AT LEAST 20 steps. Show the COMPLETE call tree unrolled step-by-step. Each recursive call = one dedicated step.
+3. Between 15 and 60 steps total. Do NOT produce fewer than 15 steps under any circumstances.
+4. Narration MUST be jargon-free, present tense, friendly — as if explaining to a smart 14-year-old.
+5. Every step MUST have cinematicHint — even if simple.
+6. Error step = include in bugs[] AND as an "error" step.
+7. If language is exotic/unknown: still produce steps, note low confidence.
+8. NEVER invent behavior the code doesn't have.
+9. If code is ambiguous: make reasonable assumptions, flag in summary.
+10. Maximum iterations of any loop shown: 5. Then summarize with a loop_end step.
+11. Detect ALL bugs, anti-patterns, security issues.
+12. Quality rubric: 90-100 excellent · 75-89 good · 60-74 acceptable · 40-59 needs work · <40 poor.
+13. scenePlan.palette: plasma=violet-dominant, aurora=mint-dominant, ember=red/orange-dominant, nebula=pink-dominant.
 `;
 
 export function buildAnalyzeUser(code: string, filename?: string): string {

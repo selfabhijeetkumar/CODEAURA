@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import { gsap } from 'gsap';
@@ -113,49 +113,24 @@ function ClosingDoors() {
 export function Choreographer({ steps, currentStep, playing }: ChoreographerProps) {
   const sound = useSound();
   const step = steps[currentStep];
+  const [actorReady, setActorReady] = useState(false);
 
-  // ── Log ALL step types when the steps array first loads ─────────────────────
+  // 100ms delay before mounting actor — ensures step data is ready
+  useEffect(() => {
+    setActorReady(false);
+    const timer = setTimeout(() => setActorReady(true), 100);
+    return () => clearTimeout(timer);
+  }, [currentStep]);
+
+  // ── Log step count when steps array loads ──────────────────────────────────
   useEffect(() => {
     if (!steps || steps.length === 0) return;
-
-    console.log('[Choreographer] ═══════════════════════════════════════');
     console.log(`[Choreographer] STEPS LOADED — total: ${steps.length}`);
-    console.log('[Choreographer] ═══════════════════════════════════════');
-
-    // Count types
-    const typeMap: Record<string, number> = {};
-    steps.forEach((s) => {
-      typeMap[s.type] = (typeMap[s.type] ?? 0) + 1;
-    });
-    console.log('[Choreographer] Type distribution:', typeMap);
-
-    // List every step
-    steps.forEach((s, i) => {
-      console.log(
-        `[Choreographer]   [${String(i).padStart(2, '0')}] type="${s.type}"  id="${s.id}"  title="${s.title}"`
-      );
-    });
-
-    console.log('[Choreographer] ═══════════════════════════════════════');
   }, [steps]);
 
-  // ── Log each stepToTween call + actor dispatch ─────────────────────────────
+  // ── Sound dispatch on step change ───────────────────────────────────────────
   useEffect(() => {
-    if (!step) {
-      console.warn(`[Choreographer] stepToTween — NO STEP at index ${currentStep} (steps.length=${steps.length})`);
-      return;
-    }
-
-    console.log(
-      `[Choreographer] ► stepToTween  index=${currentStep}/${steps.length - 1}  type="${step.type}"  title="${step.title}"`
-    );
-    console.log('[Choreographer]   payload:', step.payload);
-
-    // Dispatch log — only fires ONCE per step change (not every frame)
-    console.log(`[Choreographer] render — dispatching actor for type="${step.type}"`);
-    console.log(step.type);
-
-    // Sound
+    if (!step) return;
     switch (step.type) {
       case 'variable_declaration': sound.variable(); break;
       case 'function_call':        sound.functionCall(); break;
@@ -166,7 +141,7 @@ export function Choreographer({ steps, currentStep, playing }: ChoreographerProp
     }
   }, [currentStep, step]);   // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!step) return null;
+  if (!step || !actorReady) return null;
 
   const p = getPos(currentStep);
   const payload = step.payload as Record<string, any>;

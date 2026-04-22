@@ -119,13 +119,7 @@ export function Hero() {
             >
               Watch Your Code Think <span style={{ fontSize: 20 }}>→</span>
             </button>
-            <button
-              className="text-aura-ink-secondary text-body hover:text-aura-ink-primary transition-colors duration-400 group flex items-center gap-2"
-              onClick={() => router.push('/demo/fibonacci-recursion')}
-            >
-              Watch 60s demo
-              <span className="inline-block transition-transform duration-400 group-hover:translate-x-1">→</span>
-            </button>
+
           </div>
 
           {/* ── 3 Feature cards ────────────────────────────────────────────── */}

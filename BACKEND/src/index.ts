@@ -21,7 +21,7 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
   origin: (origin, callback) => {
     const allowed = [
-      process.env.CORS_ORIGIN || 'http://localhost:3000',
+      (process.env.CORS_ORIGIN || 'http://localhost:3000').trim(),
       'https://codeaura.vercel.app',
       /https:\/\/codeaura-.*\.vercel\.app$/,
     ];

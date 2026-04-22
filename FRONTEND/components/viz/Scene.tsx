@@ -79,7 +79,8 @@ export function VizScene() {
   return (
     <Canvas
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      dpr={[1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 2, 2)]}
+      dpr={[1, 1.5]}
+      performance={{ min: 0.5 }}
       camera={{ position: [0, 2, 12], fov: 42, near: 0.1, far: 200 }}
       style={{ background: '#000000' }}
     >

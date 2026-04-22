@@ -13,8 +13,10 @@ const dir: string = (() => {
   }
 })();
 
-// Load BACKEND/.env  (one level up from src/)
-const result = config({ path: resolve(dir, '..', '.env') });
+// Load BACKEND/.env
+const isProd = dir.endsWith('dist');
+const envPath = isProd ? resolve(dir, '..', '.env') : resolve(dir, '.env');
+const result = config({ path: envPath });
 
 if (result.error) {
   console.error(`[env] ⚠️  dotenv failed to load: ${result.error.message}`);

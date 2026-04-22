@@ -12,7 +12,6 @@ const FEATURES = [
   { num: '02', title: '3D Execution Theatre', sub: 'Cinema-grade visualization', body: 'Every variable is an orb. Every function a portal. Every loop a double helix. Watch your code literally move.' },
   { num: '03', title: 'AI Narration', sub: 'Plain English, every step', body: 'No jargon. No manuals. A friendly AI voice explains exactly what is happening — like a 14-year-old could understand.' },
   { num: '04', title: 'Bug Cinematics', sub: 'Errors as drama', body: 'Bugs trigger an ErrorShatter explosion — chromatic aberration spikes, ember floods the scene, the camera shakes.' },
-  { num: '05', title: 'Diff the Multiverse', sub: 'Side-by-side execution', body: 'Paste two versions of the same code. Watch them run simultaneously. See exactly what changed and why.' },
 ];
 
 export function FeatureReel() {

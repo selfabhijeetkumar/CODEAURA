@@ -15,7 +15,7 @@ export function CTASection() {
         <em className="text-plasma text-glow-plasma italic">closeup.</em>
       </h2>
       <p className="mt-6 text-body-lg text-aura-ink-secondary max-w-md">
-        Free to start. No account required. Every language ever written.
+        Free to start. Every language ever written. Powered by Gemini AI.
       </p>
       <div className="mt-10">
         <Button variant="plasma" size="lg" magnetic onClick={() => router.push('/studio')}>

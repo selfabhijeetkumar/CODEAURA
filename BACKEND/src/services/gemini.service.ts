@@ -51,7 +51,7 @@ export async function analyzeCode(code: string, filename?: string) {
         generationConfig: {
           temperature: 0.4,
           topP: 0.9,
-          maxOutputTokens: 8192,
+          maxOutputTokens: 16384,
           responseMimeType: 'application/json',
         },
       });
