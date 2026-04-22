@@ -5,6 +5,8 @@
  *   • nvidia/llama-3.1-nemotron-ultra-253b-v1  (Nemotron 3 Super)
  *   • openai/gpt-4o-mini                        (GPT-OSS 120b proxy)
  *   • nvidia/nemotron-nano-8b-instruct           (Nemotron 3 Nano 30B)
+ *   • openai/gpt-4o-mini-2024-07-18             (GPT-OSS 20B)
+ *   • minimax/minimax-m1                         (MiniMax M2.5)
  *   • openai/gpt-3.5-turbo                       (GPT-OSS 20b proxy)
  *
  * Uses the central ApiKeyManager for rotation + eviction.
@@ -28,13 +30,17 @@ const ANALYZE_MODELS = [
   'nvidia/llama-3.1-nemotron-ultra-253b-v1',   // Nemotron 3 Super (best)
   'openai/gpt-4o-mini',                          // GPT-OSS 120b via OpenRouter
   'nvidia/nemotron-nano-8b-instruct',            // Nemotron 3 Nano 30B
-  'openai/gpt-3.5-turbo',                        // GPT-OSS 20b via OpenRouter
+  'openai/gpt-4o-mini-2024-07-18',               // GPT-OSS 20B (new)
+  'minimax/minimax-m1',                          // MiniMax M2.5 (new)
+  'openai/gpt-3.5-turbo',                        // GPT-OSS legacy
 ];
 
 const ASK_MODELS = [
   'nvidia/llama-3.1-nemotron-ultra-253b-v1',
   'openai/gpt-4o-mini',
   'nvidia/nemotron-nano-8b-instruct',
+  'openai/gpt-4o-mini-2024-07-18',
+  'minimax/minimax-m1',
   'openai/gpt-3.5-turbo',
 ];
 

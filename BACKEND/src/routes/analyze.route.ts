@@ -4,6 +4,7 @@ import { analyzeLimiter } from '../middleware/rate-limit.js';
 import { analyzeCode } from '../services/gemini.service.js';
 import { hashCode, getCachedSession, saveSession } from '../services/cache.service.js';
 import { logger } from '../middleware/logger.js';
+import type { ExecutionScript } from '../schemas/execution-step.js';
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.post('/analyze', analyzeLimiter, async (req: Request, res: Response, next
 
     // Gemini analysis
     logger.info({ filename, codeLength: code.length }, 'Analyzing with Gemini');
-    const script = await analyzeCode(code, filename);
+    const script: ExecutionScript = await analyzeCode(code, filename);
 
     if (!script) {
       throw new Error('Analysis failed to return a script');

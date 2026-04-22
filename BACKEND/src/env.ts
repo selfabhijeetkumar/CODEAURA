@@ -28,7 +28,9 @@ if (result.error) {
   if (process.env.NEMOTRON_3_SUPER_API_KEY) registerKey({ provider: 'openrouter', envVar: 'NEMOTRON_3_SUPER_API_KEY', key: process.env.NEMOTRON_3_SUPER_API_KEY, label: 'Nemotron 3 Super' });
   if (process.env.GPT_OSS_120B_API_KEY) registerKey({ provider: 'openrouter', envVar: 'GPT_OSS_120B_API_KEY', key: process.env.GPT_OSS_120B_API_KEY, label: 'GPT-OSS 120b' });
   if (process.env.NEMOTRON_3_NANO_API_KEY) registerKey({ provider: 'openrouter', envVar: 'NEMOTRON_3_NANO_API_KEY', key: process.env.NEMOTRON_3_NANO_API_KEY, label: 'Nemotron 3 Nano' });
-  if (process.env.OPENROUTER_API_KEY) registerKey({ provider: 'openrouter', envVar: 'OPENROUTER_API_KEY', key: process.env.OPENROUTER_API_KEY, label: 'GPT-OSS 20b' });
+  if (process.env.OPENROUTER_API_KEY) registerKey({ provider: 'openrouter', envVar: 'OPENROUTER_API_KEY', key: process.env.OPENROUTER_API_KEY, label: 'OpenRouter Generic' });
+  if (process.env.GPT_OSS_20B_API_KEY) registerKey({ provider: 'openrouter', envVar: 'GPT_OSS_20B_API_KEY', key: process.env.GPT_OSS_20B_API_KEY, label: 'GPT-OSS 20b' });
+  if (process.env.MINIMAX_M25_API_KEY) registerKey({ provider: 'openrouter', envVar: 'MINIMAX_M25_API_KEY', key: process.env.MINIMAX_M25_API_KEY, label: 'MiniMax M2.5' });
 
   // Register Groq Keys
   if (process.env.GROQ_API_KEY) registerKey({ provider: 'groq', envVar: 'GROQ_API_KEY', key: process.env.GROQ_API_KEY, label: 'Groq Primary' });
