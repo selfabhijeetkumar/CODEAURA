@@ -1,14 +1,13 @@
 import { resolve } from 'path';
 import { config } from 'dotenv';
+import { registerKey } from './services/api-key-manager.js';
 
-// CJS-compatible dirname — tsx handles ESM in dev, tsc produces CJS for prod
+// CJS-compatible dirname
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const dir: string = (() => {
   try {
-    // Works when compiled to CJS (production build)
     return __dirname;
   } catch {
-    // Should not reach here in CJS build
     return process.cwd();
   }
 })();
@@ -21,23 +20,21 @@ const result = config({ path: envPath });
 if (result.error) {
   console.error(`[env] ⚠️  dotenv failed to load: ${result.error.message}`);
 } else {
-  const geminiKey = process.env.GEMINI_API_KEY;
-  const openaiKey = process.env.OPENAI_API_KEY;
-  const deepseekKey = process.env.DEEPSEEK_API_KEY;
+  // Register Gemini Keys
+  if (process.env.GEMINI_API_KEY) registerKey({ provider: 'gemini', envVar: 'GEMINI_API_KEY', key: process.env.GEMINI_API_KEY, label: 'Gemini Primary' });
+  if (process.env.ALT_GEMINI_API_KEY) registerKey({ provider: 'gemini', envVar: 'ALT_GEMINI_API_KEY', key: process.env.ALT_GEMINI_API_KEY, label: 'Gemini Alt' });
 
-  if (geminiKey) {
-    console.log(`[env] ✅ GEMINI_API_KEY loaded (${geminiKey.slice(0, 8)}...)`);
-  } else {
-    console.warn('[env] ⚠️  GEMINI_API_KEY not set — will try OpenAI/DeepSeek fallback');
-  }
-  if (openaiKey) {
-    console.log(`[env] ✅ OPENAI_API_KEY loaded (${openaiKey.slice(0, 8)}...)`);
-  } else {
-    console.warn('[env] ⚠️  OPENAI_API_KEY not set — OpenAI fallback disabled');
-  }
-  if (deepseekKey && deepseekKey !== 'none' && deepseekKey !== 'skip') {
-    console.log(`[env] ✅ DEEPSEEK_API_KEY loaded (${deepseekKey.slice(0, 8)}...)`);
-  } else {
-    console.warn('[env] ⚠️  DEEPSEEK_API_KEY not set — DeepSeek fallback disabled');
+  // Register OpenRouter Keys
+  if (process.env.NEMOTRON_3_SUPER_API_KEY) registerKey({ provider: 'openrouter', envVar: 'NEMOTRON_3_SUPER_API_KEY', key: process.env.NEMOTRON_3_SUPER_API_KEY, label: 'Nemotron 3 Super' });
+  if (process.env.GPT_OSS_120B_API_KEY) registerKey({ provider: 'openrouter', envVar: 'GPT_OSS_120B_API_KEY', key: process.env.GPT_OSS_120B_API_KEY, label: 'GPT-OSS 120b' });
+  if (process.env.NEMOTRON_3_NANO_API_KEY) registerKey({ provider: 'openrouter', envVar: 'NEMOTRON_3_NANO_API_KEY', key: process.env.NEMOTRON_3_NANO_API_KEY, label: 'Nemotron 3 Nano' });
+  if (process.env.OPENROUTER_API_KEY) registerKey({ provider: 'openrouter', envVar: 'OPENROUTER_API_KEY', key: process.env.OPENROUTER_API_KEY, label: 'GPT-OSS 20b' });
+
+  // Register Groq Keys
+  if (process.env.GROQ_API_KEY) registerKey({ provider: 'groq', envVar: 'GROQ_API_KEY', key: process.env.GROQ_API_KEY, label: 'Groq Primary' });
+
+  // Fallbacks
+  if (process.env.DEEPSEEK_API_KEY) {
+    console.log(`[env] ✅ DEEPSEEK_API_KEY loaded for legacy fallback`);
   }
 }
