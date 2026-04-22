@@ -11,6 +11,7 @@ import askRouter from './routes/ask.route.js';
 import githubRouter from './routes/github.route.js';
 import sessionsRouter from './routes/sessions.route.js';
 import diffRouter from './routes/diff.route.js';
+import quizRouter from './routes/quiz.route.js';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -18,21 +19,26 @@ const PORT = parseInt(process.env.PORT || '8080', 10);
 // ── Security ──────────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
+// ── CORS — all valid origins ───────────────────────────────
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://codeaurafinal.vercel.app',
+  'https://codeaura-psi.vercel.app',
+  'https://codeaura.vercel.app',
+  process.env.CORS_ORIGIN?.trim(),
+].filter(Boolean) as string[];
+
 app.use(cors({
   origin: (origin, callback) => {
-    const allowed = [
-      (process.env.CORS_ORIGIN || 'http://localhost:3000').trim(),
-      'https://codeaura.vercel.app',
-      /https:\/\/codeaura-.*\.vercel\.app$/,
-    ];
-    if (!origin) return callback(null, true);
-    const isAllowed = allowed.some((a) =>
-      typeof a === 'string' ? a === origin : a.test(origin)
-    );
+    if (!origin) return callback(null, true); // curl / same-origin / preflight
+    const isAllowed =
+      allowedOrigins.includes(origin) ||
+      /https:\/\/codeaura.*\.vercel\.app$/.test(origin);
     callback(isAllowed ? null : new Error('CORS rejected'), isAllowed);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
@@ -50,6 +56,7 @@ app.use('/api/v1', askRouter);
 app.use('/api/v1', githubRouter);
 app.use('/api/v1', sessionsRouter);
 app.use('/api/v1', diffRouter);
+app.use('/api/v1', quizRouter);
 
 // 404
 app.use((_req, res) => {

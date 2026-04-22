@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: 'CODEAURA — Watch Your Code Become Cinema',
     description: 'Your code is a film. CODEAURA is the cinema.',
     type: 'website',
-    url: 'https://codeaura.vercel.app',
+    url: 'https://codeaurafinal.vercel.app',
   },
   twitter: {
     card: 'summary_large_image',
@@ -20,7 +20,6 @@ export const metadata: Metadata = {
   },
 };
 
-// Next.js 14 — themeColor/colorScheme must be in viewport export
 export const viewport: Viewport = {
   themeColor: '#000000',
   colorScheme: 'dark',
@@ -36,7 +35,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="bg-aura-void text-aura-ink-primary antialiased overflow-x-hidden">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

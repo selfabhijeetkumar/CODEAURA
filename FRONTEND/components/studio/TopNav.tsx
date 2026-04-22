@@ -39,8 +39,6 @@ export function TopNav() {
     setSharing(true);
     try {
       let sid = sessionId;
-
-      // If no sessionId yet, save the session first
       if (!sid) {
         const res = await fetch(`${API}/api/v1/sessions`, {
           method: 'POST',
@@ -50,16 +48,19 @@ export function TopNav() {
         const data = await res.json();
         sid = data?.id ?? data?.sessionId ?? null;
       }
-
-      if (sid) {
-        const url = `${window.location.origin}/studio?session=${sid}`;
+      const url = sid ? `${window.location.origin}/studio?session=${sid}` : window.location.href;
+      try {
         await navigator.clipboard.writeText(url);
-        showToast('Link copied! Share your visualization 🔗');
-      } else {
-        // Fallback: copy the current URL
-        await navigator.clipboard.writeText(window.location.href);
-        showToast('Link copied! 🔗');
+      } catch {
+        // Fallback for non-HTTPS / unsupported browsers
+        const el = document.createElement('textarea');
+        el.value = url;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
       }
+      showToast('Link copied! Share your visualization 🔗');
     } catch {
       showToast('Could not copy link — try again');
     } finally {
@@ -91,6 +92,31 @@ export function TopNav() {
 
       {/* Right controls */}
       <div className="flex items-center gap-2">
+        {/* Nav links */}
+        <div className="hidden md:flex items-center gap-1 mr-2">
+          {[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Leaderboard', href: '/leaderboard' },
+          ].map(link => (
+            <button
+              key={link.href}
+              onClick={() => router.push(link.href)}
+              style={{
+                height: 28, padding: '0 12px',
+                background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 8, color: '#9BA0B3',
+                fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                transition: 'all 0.2s', letterSpacing: '0.03em',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#EAEAF0'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,180,216,0.4)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#9BA0B3'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)'; }}
+            >
+              {link.label}
+            </button>
+          ))}
+        </div>
+
         {/* Keyboard hint chips */}
         <div className="hidden lg:flex items-center gap-2 mr-3">
           {SHORTCUTS.map(s => (
